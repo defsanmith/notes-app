@@ -45,8 +45,11 @@ export const errorToastMiddleware: Middleware = () => (next) => (action) => {
   // RTK Query mutations have endpointName in meta and type is not 'query'
   if (
     isFulfilled(action) &&
-    action.meta?.arg?.endpointName &&
-    action.meta?.arg?.type === "mutation"
+    action.meta?.arg &&
+    typeof action.meta.arg === "object" &&
+    "endpointName" in action.meta.arg &&
+    "type" in action.meta.arg &&
+    action.meta.arg.type === "mutation"
   ) {
     const payload = action.payload as {
       success?: boolean;
