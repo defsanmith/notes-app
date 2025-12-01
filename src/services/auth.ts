@@ -40,7 +40,7 @@ export async function findUserForAuth(email: string) {
       name: true,
       password: true,
       image: true,
+      role: true,
     },
   });
 }
-

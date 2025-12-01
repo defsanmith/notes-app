@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -26,10 +27,19 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Routes } from "@/constants/router";
 import {
   useCreateNoteMutation,
-  useDeleteNoteMutation,
   useGetNotesQuery,
 } from "@/lib/store/api/notes/queries";
 import DeleteAlert from "../views/notes/delete-alert";
+import NavUser from "./nav-user";
+
+interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
+  user?: {
+    id: string;
+    name?: string | null;
+    email?: string | null;
+    role?: string;
+  };
+}
 
 function formatNoteTitle(
   title: string,
@@ -44,12 +54,11 @@ function formatNoteTitle(
   return title;
 }
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({ user, ...props }: AppSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { data: notes, isLoading } = useGetNotesQuery();
   const [createNote, { isLoading: isCreating }] = useCreateNoteMutation();
-  const [deleteNote] = useDeleteNoteMutation();
 
   const handleNewNote = async () => {
     try {
@@ -59,18 +68,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       router.push(Routes.getNoteRoute(newNote.id));
     } catch (error) {
       console.error("Failed to create note:", error);
-    }
-  };
-
-  const handleDeleteNote = async (noteId: string) => {
-    try {
-      await deleteNote(noteId).unwrap();
-      // If currently viewing the deleted note, redirect to home
-      if (pathname === Routes.getNoteRoute(noteId)) {
-        router.push(Routes.HOME);
-      }
-    } catch (error) {
-      console.error("Failed to delete note:", error);
     }
   };
 
@@ -176,6 +173,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter>
+        <NavUser user={user} />
+      </SidebarFooter>
     </Sidebar>
   );
 }
