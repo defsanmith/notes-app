@@ -4,11 +4,13 @@ import {
   IconCirclePlusFilled,
   IconInnerShadowTop,
   IconNote,
+  IconTrash,
 } from "@tabler/icons-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import * as React from "react";
 
+import { Button } from "@/components/ui/button";
 import {
   Sidebar,
   SidebarContent,
@@ -24,8 +26,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Routes } from "@/constants/router";
 import {
   useCreateNoteMutation,
+  useDeleteNoteMutation,
   useGetNotesQuery,
 } from "@/lib/store/api/notes/queries";
+import DeleteAlert from "../views/notes/delete-alert";
 
 function formatNoteTitle(
   title: string,
@@ -45,6 +49,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const router = useRouter();
   const { data: notes, isLoading } = useGetNotesQuery();
   const [createNote, { isLoading: isCreating }] = useCreateNoteMutation();
+  const [deleteNote] = useDeleteNoteMutation();
 
   const handleNewNote = async () => {
     try {
@@ -54,6 +59,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       router.push(Routes.getNoteRoute(newNote.id));
     } catch (error) {
       console.error("Failed to create note:", error);
+    }
+  };
+
+  const handleDeleteNote = async (noteId: string) => {
+    try {
+      await deleteNote(noteId).unwrap();
+      // If currently viewing the deleted note, redirect to home
+      if (pathname === Routes.getNoteRoute(noteId)) {
+        router.push(Routes.HOME);
+      }
+    } catch (error) {
+      console.error("Failed to delete note:", error);
     }
   };
 
@@ -110,26 +127,41 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 // Notes list
                 notes.map((note) => (
                   <SidebarMenuItem key={note.id}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={pathname === Routes.getNoteRoute(note.id)}
-                      tooltip={formatNoteTitle(
-                        note.title,
-                        note.createdAt,
-                        note.updatedAt
-                      )}
-                    >
-                      <Link href={Routes.getNoteRoute(note.id)}>
-                        <IconNote className="size-4!" />
-                        <span className="truncate">
-                          {formatNoteTitle(
-                            note.title,
-                            note.createdAt,
-                            note.updatedAt
-                          )}
-                        </span>
-                      </Link>
-                    </SidebarMenuButton>
+                    <div className="flex items-center gap-1 group/note-item">
+                      <SidebarMenuButton
+                        asChild
+                        isActive={pathname === Routes.getNoteRoute(note.id)}
+                        tooltip={formatNoteTitle(
+                          note.title,
+                          note.createdAt,
+                          note.updatedAt
+                        )}
+                        className="flex-1"
+                      >
+                        <Link href={Routes.getNoteRoute(note.id)}>
+                          <IconNote className="size-4!" />
+                          <span className="truncate">
+                            {formatNoteTitle(
+                              note.title,
+                              note.createdAt,
+                              note.updatedAt
+                            )}
+                          </span>
+                        </Link>
+                      </SidebarMenuButton>
+                      <DeleteAlert
+                        noteId={note.id}
+                        trigger={
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 opacity-0 group-hover/note-item:opacity-100 text-muted-foreground hover:text-destructive transition-opacity"
+                          >
+                            <IconTrash className="h-4 w-4" />
+                          </Button>
+                        }
+                      />
+                    </div>
                   </SidebarMenuItem>
                 ))
               ) : (

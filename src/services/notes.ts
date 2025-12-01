@@ -79,3 +79,14 @@ export async function updateNote(
   });
 }
 
+/**
+ * Delete a note by ID
+ */
+export async function deleteNote(noteId: string) {
+  return prisma.notes.delete({
+    where: {
+      id: noteId,
+    },
+    select: noteSelect,
+  });
+}

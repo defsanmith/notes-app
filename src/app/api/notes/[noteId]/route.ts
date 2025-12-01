@@ -1,5 +1,5 @@
 import { auth } from "@/lib/auth";
-import { findNoteById, updateNote } from "@/services/notes";
+import { findNoteById, updateNote, deleteNote } from "@/services/notes";
 import type { ApiResponse } from "@/types/api";
 import type { Prisma } from "@/generated/prisma";
 import { NextRequest, NextResponse } from "next/server";
@@ -142,6 +142,64 @@ export async function PATCH(
     const errorResponse: ApiResponse = {
       success: false,
       error: "Failed to update note",
+    };
+
+    return NextResponse.json(errorResponse, { status: 500 });
+  }
+}
+
+// DELETE /api/notes/[noteId] - Delete a note
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ noteId: string }> }
+) {
+  try {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      const errorResponse: ApiResponse = {
+        success: false,
+        error: "Unauthorized",
+      };
+      return NextResponse.json(errorResponse, { status: 401 });
+    }
+
+    const { noteId } = await params;
+
+    // First, verify the note exists and belongs to the user
+    const existingNote = await findNoteById(noteId);
+
+    if (!existingNote) {
+      const errorResponse: ApiResponse = {
+        success: false,
+        error: "Note not found",
+      };
+      return NextResponse.json(errorResponse, { status: 404 });
+    }
+
+    if (existingNote.userId !== session.user.id) {
+      const errorResponse: ApiResponse = {
+        success: false,
+        error: "Unauthorized",
+      };
+      return NextResponse.json(errorResponse, { status: 403 });
+    }
+
+    // Delete the note
+    await deleteNote(noteId);
+
+    const response: ApiResponse = {
+      success: true,
+      data: { message: "Note deleted successfully" },
+    };
+
+    return NextResponse.json(response);
+  } catch (error) {
+    console.error("Error deleting note:", error);
+
+    const errorResponse: ApiResponse = {
+      success: false,
+      error: "Failed to delete note",
     };
 
     return NextResponse.json(errorResponse, { status: 500 });

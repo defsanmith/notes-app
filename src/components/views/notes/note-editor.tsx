@@ -1,9 +1,11 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { defaultExtensions } from "@/lib/editor/extensions";
 import { slashCommand, suggestionItems } from "@/lib/editor/slash-command";
 import { useUpdateNoteMutation } from "@/lib/store/api/notes/queries";
+import { IconTrash } from "@tabler/icons-react";
 import {
   EditorCommand,
   EditorCommandEmpty,
@@ -17,6 +19,7 @@ import {
 } from "novel";
 import * as React from "react";
 import { useDebouncedCallback } from "use-debounce";
+import DeleteAlert from "./delete-alert";
 
 interface NoteEditorProps {
   noteId: string;
@@ -110,7 +113,7 @@ export function NoteEditor({
       <div className="flex items-center gap-4 border-b px-6 py-4">
         <SidebarTrigger />
         {/* Title input */}
-        <div className="w-full">
+        <div className="flex-1">
           <input
             type="text"
             value={title}
@@ -119,6 +122,18 @@ export function NoteEditor({
             className="w-full border-none bg-transparent text-3xl font-bold outline-none placeholder:text-muted-foreground"
           />
         </div>
+        <DeleteAlert
+          noteId={noteId}
+          trigger={
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-muted-foreground hover:text-destructive"
+            >
+              <IconTrash className="h-5 w-5" />
+            </Button>
+          }
+        />
       </div>
       {/* Novel editor */}
       <div className="flex-1 overflow-auto px-6 py-4 relative">
