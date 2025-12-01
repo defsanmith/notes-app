@@ -1,5 +1,6 @@
 "use client";
 
+import { SidebarTrigger } from "@/components/ui/sidebar";
 import { defaultExtensions } from "@/lib/editor/extensions";
 import { slashCommand, suggestionItems } from "@/lib/editor/slash-command";
 import { useUpdateNoteMutation } from "@/lib/store/api/notes/queries";
@@ -21,25 +22,14 @@ interface NoteEditorProps {
   noteId: string;
   initialTitle?: string;
   initialContent?: JSONContent;
-  onContentChange?: (content: JSONContent) => void;
-  onTitleChange?: (title: string) => void;
 }
 
 export function NoteEditor({
   noteId,
   initialTitle = "Untitled",
   initialContent,
-  onContentChange,
-  onTitleChange,
 }: NoteEditorProps) {
   const [title, setTitle] = React.useState(initialTitle);
-  const [currentContent, setCurrentContent] = React.useState<
-    JSONContent | undefined
-  >();
-  const [saveStatus, setSaveStatus] = React.useState<
-    "idle" | "saving" | "saved" | "error"
-  >("idle");
-  const [updateNote] = useUpdateNoteMutation();
 
   // Prepare initial content for Novel - only computed once
   const editorInitialContent = React.useMemo(() => {
@@ -53,6 +43,19 @@ export function NoteEditor({
     // Default empty document structure for Novel/Tiptap
     return undefined;
   }, [initialContent]);
+
+  // Initialize currentContent with the editor initial content or empty doc
+  const [currentContent, setCurrentContent] = React.useState<JSONContent>(
+    editorInitialContent || {
+      type: "doc",
+      content: [],
+    }
+  );
+
+  const [saveStatus, setSaveStatus] = React.useState<
+    "idle" | "saving" | "saved" | "error"
+  >("idle");
+  const [updateNote] = useUpdateNoteMutation();
 
   // Combine extensions
   const extensions = React.useMemo(
@@ -89,10 +92,7 @@ export function NoteEditor({
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newTitle = e.target.value;
     setTitle(newTitle);
-    onTitleChange?.(newTitle);
-    if (currentContent) {
-      debouncedSave(newTitle, currentContent);
-    }
+    debouncedSave(newTitle, currentContent);
   };
 
   // Handle content update from editor
@@ -100,25 +100,30 @@ export function NoteEditor({
     (editor: EditorInstance) => {
       const json = editor.getJSON();
       setCurrentContent(json);
-      onContentChange?.(json);
       debouncedSave(title, json);
     },
-    [title, debouncedSave, onContentChange]
+    [title, debouncedSave]
   );
 
   return (
     <div className="flex h-full w-full flex-col">
-      {/* Title input */}
-      <div className="border-b px-6 py-4">
-        <input
-          type="text"
-          value={title}
-          onChange={handleTitleChange}
-          placeholder="Untitled"
-          className="w-full border-none bg-transparent text-3xl font-bold outline-none placeholder:text-muted-foreground"
-        />
+      <div className="flex items-center gap-4 border-b px-6 py-4">
+        <SidebarTrigger />
+        {/* Title input */}
+        <div className="w-full">
+          <input
+            type="text"
+            value={title}
+            onChange={handleTitleChange}
+            placeholder="Untitled"
+            className="w-full border-none bg-transparent text-3xl font-bold outline-none placeholder:text-muted-foreground"
+          />
+        </div>
+      </div>
+      {/* Novel editor */}
+      <div className="flex-1 overflow-auto px-6 py-4 relative">
         {/* Save status indicator */}
-        <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
+        <div className="absolute top-4 right-6 flex items-center gap-2 text-sm text-muted-foreground">
           {saveStatus === "saving" && (
             <>
               <div className="h-2 w-2 animate-pulse rounded-full bg-yellow-500" />
@@ -138,28 +143,24 @@ export function NoteEditor({
             </>
           )}
         </div>
-      </div>
-
-      {/* Novel editor */}
-      <div className="flex-1 overflow-auto px-6 py-4">
         <EditorRoot key={noteId}>
           <EditorContent
             immediatelyRender={false}
             extensions={extensions}
             initialContent={editorInitialContent}
             onUpdate={({ editor }) => handleEditorUpdate(editor)}
-            className="min-h-full w-full"
+            className="relative w-full"
             editorProps={{
               handleDOMEvents: {
                 keydown: (_view, event) => handleCommandNavigation(event),
               },
               attributes: {
                 class:
-                  "prose prose-lg dark:prose-invert prose-headings:font-title font-default focus:outline-none max-w-full",
+                  "prose min-h-[calc(100vh-11rem)] prose-lg dark:prose-invert prose-headings:font-title font-default focus:outline-none max-w-full",
               },
             }}
           >
-            <EditorCommand className="z-50 h-auto max-h-[330px] w-72 overflow-y-auto rounded-md border border-muted bg-background px-1 py-2 shadow-md transition-all">
+            <EditorCommand className="z-50 h-auto max-h-[330px] overflow-y-auto rounded-md border border-muted bg-background px-1 py-2 shadow-md transition-all">
               <EditorCommandEmpty className="px-2 text-muted-foreground">
                 No results
               </EditorCommandEmpty>
@@ -167,7 +168,7 @@ export function NoteEditor({
                 {suggestionItems.map((item) => (
                   <EditorCommandItem
                     value={item.title}
-                    onCommand={(val) => item.command?.(val)}
+                    onCommand={(val) => item?.command?.(val)}
                     className="flex w-full items-center space-x-2 rounded-md px-2 py-1 text-left text-sm hover:bg-accent aria-selected:bg-accent"
                     key={item.title}
                   >

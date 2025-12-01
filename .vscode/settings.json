@@ -10,5 +10,8 @@
   "editor.detectIndentation": false,
   "editor.autoIndent": "full",
   "editor.autoClosingQuotes": "always",
-  "editor.autoClosingBrackets": "always"
+  "editor.autoClosingBrackets": "always",
+  "tailwindCSS.experimental.classRegex": [
+    ["cx\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
+  ]
 }

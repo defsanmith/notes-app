@@ -6,7 +6,7 @@ import {
   IconNote,
 } from "@tabler/icons-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import * as React from "react";
 
 import {
@@ -22,7 +22,10 @@ import {
 } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Routes } from "@/constants/router";
-import { useGetNotesQuery } from "@/lib/store/api/notes/queries";
+import {
+  useCreateNoteMutation,
+  useGetNotesQuery,
+} from "@/lib/store/api/notes/queries";
 
 function formatNoteTitle(
   title: string,
@@ -39,7 +42,20 @@ function formatNoteTitle(
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
+  const router = useRouter();
   const { data: notes, isLoading } = useGetNotesQuery();
+  const [createNote, { isLoading: isCreating }] = useCreateNoteMutation();
+
+  const handleNewNote = async () => {
+    try {
+      const newNote = await createNote({
+        title: "Untitled",
+      }).unwrap();
+      router.push(Routes.getNoteRoute(newNote.id));
+    } catch (error) {
+      console.error("Failed to create note:", error);
+    }
+  };
 
   return (
     <Sidebar collapsible="offcanvas" {...props}>
@@ -64,14 +80,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenu>
               <SidebarMenuItem className="flex items-center gap-2">
                 <SidebarMenuButton
-                  asChild
+                  onClick={handleNewNote}
+                  disabled={isCreating}
                   tooltip="New Note"
                   className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground min-w-8 duration-200 ease-linear"
                 >
-                  <Link href={Routes.NEW_NOTE}>
-                    <IconCirclePlusFilled />
-                    <span>New Note</span>
-                  </Link>
+                  <IconCirclePlusFilled />
+                  <span>{isCreating ? "Creating..." : "New Note"}</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>

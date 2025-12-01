@@ -1,14 +1,18 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { Routes } from "@/constants/router";
-import { useGetNotesQuery } from "@/lib/store/api/notes/queries";
-import Link from "next/link";
+import {
+  useCreateNoteMutation,
+  useGetNotesQuery,
+} from "@/lib/store/api/notes/queries";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 export default function Home() {
   const { data: notes, isLoading } = useGetNotesQuery();
   const router = useRouter();
+  const [createNote, { isLoading: isCreating }] = useCreateNoteMutation();
 
   // If user has notes, redirect to the most recent one
   useEffect(() => {
@@ -16,6 +20,17 @@ export default function Home() {
       router.push(Routes.getNoteRoute(notes[0].id as string));
     }
   }, [notes, isLoading, router]);
+
+  const handleCreateFirstNote = async () => {
+    try {
+      const newNote = await createNote({
+        title: "Untitled",
+      }).unwrap();
+      router.push(Routes.getNoteRoute(newNote.id));
+    } catch (error) {
+      console.error("Failed to create note:", error);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -34,12 +49,12 @@ export default function Home() {
           You don&apos;t have any notes yet. Create your first note to get
           started!
         </p>
-        <Link
-          href={Routes.NEW_NOTE}
-          className="rounded-md bg-primary px-6 py-3 text-primary-foreground hover:bg-primary/90"
+        <Button
+          onClick={handleCreateFirstNote}
+          disabled={isCreating}
         >
-          Create Your First Note
-        </Link>
+          {isCreating ? "Creating..." : "Create Your First Note"}
+        </Button>
       </div>
     </div>
   );

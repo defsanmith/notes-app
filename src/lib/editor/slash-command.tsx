@@ -1,3 +1,4 @@
+import { IconBrandTwitter, IconBrandYoutube } from "@tabler/icons-react";
 import {
   CheckSquare,
   Code,
@@ -9,7 +10,7 @@ import {
   Text,
   TextQuote,
 } from "lucide-react";
-import { createSuggestionItems, Command, renderItems } from "novel";
+import { Command, createSuggestionItems, renderItems } from "novel";
 
 export const suggestionItems = createSuggestionItems([
   {
@@ -27,9 +28,18 @@ export const suggestionItems = createSuggestionItems([
     },
   },
   {
+    title: "To-do List",
+    description: "Track tasks with a to-do list.",
+    searchTerms: ["todo", "task", "list", "check", "checkbox"],
+    icon: <CheckSquare size={18} />,
+    command: ({ editor, range }) => {
+      editor.chain().focus().deleteRange(range).toggleTaskList().run();
+    },
+  },
+  {
     title: "Heading 1",
     description: "Big section heading.",
-    searchTerms: ["title", "big", "large", "h1"],
+    searchTerms: ["title", "big", "large"],
     icon: <Heading1 size={18} />,
     command: ({ editor, range }) => {
       editor
@@ -43,7 +53,7 @@ export const suggestionItems = createSuggestionItems([
   {
     title: "Heading 2",
     description: "Medium section heading.",
-    searchTerms: ["subtitle", "medium", "h2"],
+    searchTerms: ["subtitle", "medium"],
     icon: <Heading2 size={18} />,
     command: ({ editor, range }) => {
       editor
@@ -57,7 +67,7 @@ export const suggestionItems = createSuggestionItems([
   {
     title: "Heading 3",
     description: "Small section heading.",
-    searchTerms: ["subtitle", "small", "h3"],
+    searchTerms: ["subtitle", "small"],
     icon: <Heading3 size={18} />,
     command: ({ editor, range }) => {
       editor
@@ -71,7 +81,7 @@ export const suggestionItems = createSuggestionItems([
   {
     title: "Bullet List",
     description: "Create a simple bullet list.",
-    searchTerms: ["unordered", "point", "ul"],
+    searchTerms: ["unordered", "point"],
     icon: <List size={18} />,
     command: ({ editor, range }) => {
       editor.chain().focus().deleteRange(range).toggleBulletList().run();
@@ -80,19 +90,10 @@ export const suggestionItems = createSuggestionItems([
   {
     title: "Numbered List",
     description: "Create a list with numbering.",
-    searchTerms: ["ordered", "ol"],
+    searchTerms: ["ordered"],
     icon: <ListOrdered size={18} />,
     command: ({ editor, range }) => {
       editor.chain().focus().deleteRange(range).toggleOrderedList().run();
-    },
-  },
-  {
-    title: "To-do List",
-    description: "Track tasks with a to-do list.",
-    searchTerms: ["todo", "task", "list", "check", "checkbox"],
-    icon: <CheckSquare size={18} />,
-    command: ({ editor, range }) => {
-      editor.chain().focus().deleteRange(range).toggleTaskList().run();
     },
   },
   {
@@ -117,6 +118,61 @@ export const suggestionItems = createSuggestionItems([
     command: ({ editor, range }) =>
       editor.chain().focus().deleteRange(range).toggleCodeBlock().run(),
   },
+  {
+    title: "Youtube",
+    description: "Embed a Youtube video.",
+    searchTerms: ["video", "youtube", "embed"],
+    icon: <IconBrandYoutube size={18} />,
+    command: ({ editor, range }) => {
+      const videoLink = prompt("Please enter Youtube Video Link");
+      //From https://regexr.com/3dj5t
+      const ytregex = new RegExp(
+        /^((?:https?:)?\/\/)?((?:www|m)\.)?((?:youtube\.com|youtu.be))(\/(?:[\w\-]+\?v=|embed\/|v\/)?)([\w\-]+)(\S+)?$/
+      );
+
+      if (videoLink && ytregex.test(videoLink)) {
+        editor
+          .chain()
+          .focus()
+          .deleteRange(range)
+          .setYoutubeVideo({
+            src: videoLink,
+          })
+          .run();
+      } else {
+        if (videoLink !== null) {
+          alert("Please enter a correct Youtube Video Link");
+        }
+      }
+    },
+  },
+  {
+    title: "Twitter",
+    description: "Embed a Tweet.",
+    searchTerms: ["twitter", "embed"],
+    icon: <IconBrandTwitter size={18} />,
+    command: ({ editor, range }) => {
+      const tweetLink = prompt("Please enter Twitter Link");
+      const tweetRegex = new RegExp(
+        /^https?:\/\/(www\.)?x\.com\/([a-zA-Z0-9_]{1,15})(\/status\/(\d+))?(\/\S*)?$/
+      );
+
+      if (tweetLink && tweetRegex.test(tweetLink)) {
+        editor
+          .chain()
+          .focus()
+          .deleteRange(range)
+          .setTweet({
+            src: tweetLink,
+          })
+          .run();
+      } else {
+        if (tweetLink !== null) {
+          alert("Please enter a correct Twitter Link");
+        }
+      }
+    },
+  },
 ]);
 
 export const slashCommand = Command.configure({
@@ -125,4 +181,3 @@ export const slashCommand = Command.configure({
     render: renderItems,
   },
 });
-
