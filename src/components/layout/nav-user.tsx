@@ -4,7 +4,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  useSidebar,
 } from "@/components/ui/sidebar";
 import { LogOutIcon } from "lucide-react";
 import { signOut } from "next-auth/react";
@@ -20,8 +19,6 @@ interface NavUserProps extends React.ComponentProps<typeof SidebarMenu> {
 }
 
 export default function NavUser({ user, ...props }: NavUserProps) {
-  const { isMobile } = useSidebar();
-
   const handleSignOut = async () => {
     await signOut({ callbackUrl: "/auth/signin" });
   };
@@ -35,7 +32,7 @@ export default function NavUser({ user, ...props }: NavUserProps) {
       <SidebarMenuItem>
         <div className="flex items-center gap-1 group/note-item">
           <SidebarMenuButton asChild className="flex-1">
-            <div className="grid flex-1 text-left text-sm leading-tight">
+            <div className="grid flex-1 text-left text-sm ">
               <span className="truncate font-medium">
                 {user.name || "User"}
               </span>

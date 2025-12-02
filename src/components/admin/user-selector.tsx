@@ -18,7 +18,7 @@ import { Routes } from "@/constants/router";
 import { useGetUsersQuery } from "@/lib/store/api/admin/queries";
 import { cn } from "@/lib/utils";
 import { IconCheck, IconChevronDown, IconUser } from "@tabler/icons-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import * as React from "react";
 import { useDebouncedCallback } from "use-debounce";
@@ -30,16 +30,10 @@ interface User {
   role: string;
 }
 
-interface UserSelectorProps {
-  selectedUserId: string | null;
-  onUserSelect: (userId: string | null) => void;
-}
-
-export function UserSelector({
-  selectedUserId,
-  onUserSelect,
-}: UserSelectorProps) {
+export function UserSelector() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const selectedUserId = searchParams.get("userId");
 
   const [open, setOpen] = React.useState(false);
   const [search, setSearch] = React.useState("");
@@ -91,11 +85,16 @@ export function UserSelector({
   };
 
   const handleSelect = (userId: string) => {
-    onUserSelect(userId === selectedUserId ? null : userId);
+    const params = new URLSearchParams();
+    if (userId !== selectedUserId) {
+      params.set("userId", userId);
+      router.push(`${Routes.ADMIN}?${params.toString()}`);
+    } else {
+      router.push(Routes.ADMIN);
+    }
     setOpen(false);
     setSearch("");
     setDebouncedSearch("");
-    router.push(Routes.ADMIN);
   };
 
   const loadMore = () => {
@@ -142,9 +141,8 @@ export function UserSelector({
               <CommandItem
                 value="all"
                 onSelect={() => {
-                  onUserSelect(null);
-                  setOpen(false);
                   router.push(Routes.ADMIN);
+                  setOpen(false);
                 }}
                 className="cursor-pointer"
               >

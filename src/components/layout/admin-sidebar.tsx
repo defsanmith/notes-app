@@ -3,7 +3,7 @@
 import { IconInnerShadowTop, IconNote } from "@tabler/icons-react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import * as React from "react";
 
 import {
@@ -62,9 +62,8 @@ function formatNoteTitle(
 
 export function AdminSidebar({ user, ...props }: AdminSidebarProps) {
   const pathname = usePathname();
-  const [selectedUserId, setSelectedUserId] = React.useState<string | null>(
-    null
-  );
+  const searchParams = useSearchParams();
+  const selectedUserId = searchParams.get("userId");
   const [page, setPage] = React.useState(1);
   const [allNotes, setAllNotes] = React.useState<NoteWithUser[]>([]);
 
@@ -76,31 +75,29 @@ export function AdminSidebar({ user, ...props }: AdminSidebarProps) {
     limit,
   });
 
-  // Accumulate notes as pages load
-  React.useEffect(() => {
-    if (data?.notes) {
-      setAllNotes((prev) => {
-        const newNotes = data.notes.filter(
-          (note) => !prev.find((p) => p.id === note.id)
-        );
-        return [...prev, ...newNotes];
-      });
-    }
-  }, [data]);
-
   // Reset accumulated notes when user filter changes
   React.useEffect(() => {
     setPage(1);
     setAllNotes([]);
   }, [selectedUserId]);
 
-  // Reset to first page data when page is 1
+  // Handle data updates - replace or accumulate based on page
   React.useEffect(() => {
-    if (page === 1 && data?.notes) {
-      setAllNotes(data.notes);
+    if (data?.notes) {
+      if (page === 1) {
+        // For first page, replace all notes
+        setAllNotes(data.notes);
+      } else {
+        // For subsequent pages, only add new notes
+        setAllNotes((prev) => {
+          const newNotes = data.notes.filter(
+            (note) => !prev.find((p) => p.id === note.id)
+          );
+          return [...prev, ...newNotes];
+        });
+      }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedUserId]);
+  }, [data, page]);
 
   const hasMore = data ? allNotes.length < data.total : false;
 
@@ -158,10 +155,7 @@ export function AdminSidebar({ user, ...props }: AdminSidebarProps) {
         <SidebarGroup>
           <SidebarGroupLabel>Filter by User</SidebarGroupLabel>
           <SidebarGroupContent className="px-2">
-            <UserSelector
-              selectedUserId={selectedUserId}
-              onUserSelect={setSelectedUserId}
-            />
+            <UserSelector />
           </SidebarGroupContent>
         </SidebarGroup>
 
