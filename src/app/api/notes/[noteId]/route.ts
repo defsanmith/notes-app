@@ -1,7 +1,7 @@
-import { auth } from "@/lib/auth";
-import { findNoteById, updateNote, deleteNote } from "@/services/notes";
-import type { ApiResponse } from "@/types/api";
 import type { Prisma } from "@/generated/prisma";
+import { auth } from "@/lib/auth";
+import { deleteNote, findNoteById, updateNote } from "@/services/notes";
+import type { ApiResponse } from "@/types/api";
 import { NextRequest, NextResponse } from "next/server";
 
 interface Note {
@@ -86,6 +86,15 @@ export async function PATCH(
       return NextResponse.json(errorResponse, { status: 401 });
     }
 
+    // Check if user is admin (admins have read-only access)
+    if (session.user.role === "ADMIN") {
+      const errorResponse: ApiResponse = {
+        success: false,
+        error: "Admins have read-only access",
+      };
+      return NextResponse.json(errorResponse, { status: 403 });
+    }
+
     const { noteId } = await params;
     const body = await request.json();
     const { title, content } = body;
@@ -111,7 +120,7 @@ export async function PATCH(
 
     // Build update data object with only provided fields
     const updateData: { title?: string; content?: Prisma.InputJsonValue } = {};
-    
+
     if (title !== undefined) {
       if (typeof title !== "string") {
         const errorResponse: ApiResponse = {
@@ -164,6 +173,15 @@ export async function DELETE(
       return NextResponse.json(errorResponse, { status: 401 });
     }
 
+    // Check if user is admin (admins have read-only access)
+    if (session.user.role === "ADMIN") {
+      const errorResponse: ApiResponse = {
+        success: false,
+        error: "Admins have read-only access",
+      };
+      return NextResponse.json(errorResponse, { status: 403 });
+    }
+
     const { noteId } = await params;
 
     // First, verify the note exists and belongs to the user
@@ -205,4 +223,3 @@ export async function DELETE(
     return NextResponse.json(errorResponse, { status: 500 });
   }
 }
-

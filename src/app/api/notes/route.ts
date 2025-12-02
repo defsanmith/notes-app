@@ -60,6 +60,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(errorResponse, { status: 401 });
     }
 
+    // Check if user is admin (admins have read-only access)
+    if (session.user.role === "ADMIN") {
+      const errorResponse: ApiResponse = {
+        success: false,
+        error: "Admins have read-only access",
+      };
+      return NextResponse.json(errorResponse, { status: 403 });
+    }
+
     const body = await request.json();
     const { title, content } = body;
 
@@ -95,4 +104,3 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(errorResponse, { status: 500 });
   }
 }
-

@@ -1,3 +1,4 @@
+import { ADMIN_EMAIL } from "@/constants/env";
 import { signUpSchema } from "@/lib/validations/auth";
 import { createUser, findUserByEmail } from "@/services/auth";
 import { ApiResponse } from "@/types/api";
@@ -12,6 +13,16 @@ export async function POST(request: NextRequest) {
 
     // Validate request body
     const validatedData = signUpSchema.parse(body);
+
+    // Block admin email registration
+    if (validatedData.email === ADMIN_EMAIL) {
+      const response: ApiResponse = {
+        success: false,
+        error: "Admin accounts cannot be registered",
+        message: "This email is reserved for administrative purposes",
+      };
+      return NextResponse.json(response, { status: 403 });
+    }
 
     // Check if user already exists using service
     const existingUser = await findUserByEmail(validatedData.email);

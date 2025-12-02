@@ -25,12 +25,14 @@ interface NoteEditorProps {
   noteId: string;
   initialTitle?: string;
   initialContent?: JSONContent;
+  editable?: boolean;
 }
 
 export function NoteEditor({
   noteId,
   initialTitle = "Untitled",
   initialContent,
+  editable = true,
 }: NoteEditorProps) {
   const [title, setTitle] = React.useState(initialTitle);
 
@@ -93,6 +95,7 @@ export function NoteEditor({
 
   // Handle title change
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!editable) return;
     const newTitle = e.target.value;
     setTitle(newTitle);
     debouncedSave(newTitle, currentContent);
@@ -101,11 +104,12 @@ export function NoteEditor({
   // Handle content update from editor
   const handleEditorUpdate = React.useCallback(
     (editor: EditorInstance) => {
+      if (!editable) return;
       const json = editor.getJSON();
       setCurrentContent(json);
       debouncedSave(title, json);
     },
-    [title, debouncedSave]
+    [title, debouncedSave, editable]
   );
 
   return (
@@ -119,45 +123,59 @@ export function NoteEditor({
             value={title}
             onChange={handleTitleChange}
             placeholder="Untitled"
-            className="w-full border-none bg-transparent text-3xl font-bold outline-none placeholder:text-muted-foreground"
+            disabled={!editable}
+            readOnly={!editable}
+            className={
+              "w-full border-none bg-transparent text-3xl font-bold outline-none placeholder:text-muted-foreground " +
+              (!editable ? "cursor-default text-muted-foreground" : "")
+            }
           />
         </div>
-        <DeleteAlert
-          noteId={noteId}
-          trigger={
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-muted-foreground hover:text-destructive"
-            >
-              <IconTrash className="h-5 w-5" />
-            </Button>
-          }
-        />
+        {!editable && (
+          <span className="text-xs bg-muted px-2 py-1 rounded text-muted-foreground">
+            Read-Only
+          </span>
+        )}
+        {editable && (
+          <DeleteAlert
+            noteId={noteId}
+            trigger={
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-muted-foreground hover:text-destructive"
+              >
+                <IconTrash className="h-5 w-5" />
+              </Button>
+            }
+          />
+        )}
       </div>
       {/* Novel editor */}
       <div className="flex-1 overflow-auto px-6 py-4 relative">
         {/* Save status indicator */}
-        <div className="absolute top-4 right-6 flex items-center gap-2 text-sm text-muted-foreground">
-          {saveStatus === "saving" && (
-            <>
-              <div className="h-2 w-2 animate-pulse rounded-full bg-yellow-500" />
-              <span>Saving...</span>
-            </>
-          )}
-          {saveStatus === "saved" && (
-            <>
-              <div className="h-2 w-2 rounded-full bg-green-500" />
-              <span>Saved</span>
-            </>
-          )}
-          {saveStatus === "error" && (
-            <>
-              <div className="h-2 w-2 rounded-full bg-red-500" />
-              <span>Failed to save</span>
-            </>
-          )}
-        </div>
+        {editable && (
+          <div className="absolute top-4 right-6 flex items-center gap-2 text-sm text-muted-foreground">
+            {saveStatus === "saving" && (
+              <>
+                <div className="h-2 w-2 animate-pulse rounded-full bg-yellow-500" />
+                <span>Saving...</span>
+              </>
+            )}
+            {saveStatus === "saved" && (
+              <>
+                <div className="h-2 w-2 rounded-full bg-green-500" />
+                <span>Saved</span>
+              </>
+            )}
+            {saveStatus === "error" && (
+              <>
+                <div className="h-2 w-2 rounded-full bg-red-500" />
+                <span>Failed to save</span>
+              </>
+            )}
+          </div>
+        )}
         <EditorRoot key={noteId}>
           <EditorContent
             immediatelyRender={false}
@@ -166,6 +184,7 @@ export function NoteEditor({
             onUpdate={({ editor }) => handleEditorUpdate(editor)}
             className="relative w-full"
             editorProps={{
+              editable: () => editable,
               handleDOMEvents: {
                 keydown: (_view, event) => handleCommandNavigation(event),
               },

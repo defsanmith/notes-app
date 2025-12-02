@@ -44,3 +44,45 @@ export async function findUserForAuth(email: string) {
     },
   });
 }
+
+/**
+ * Find all users with pagination (for admin)
+ */
+export async function findAllUsersWithPagination(params: {
+  search?: string;
+  page: number;
+  limit: number;
+}) {
+  const skip = (params.page - 1) * params.limit;
+
+  const where = params.search
+    ? {
+        role: { not: "ADMIN" },
+        OR: [
+          { name: { contains: params.search, mode: "insensitive" as const } },
+          { email: { contains: params.search, mode: "insensitive" as const } },
+        ],
+      }
+    : { role: { not: "ADMIN" } };
+
+  const [users, total] = await Promise.all([
+    prisma.user.findMany({
+      where,
+      skip,
+      take: params.limit,
+      orderBy: {
+        createdAt: "desc",
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        createdAt: true,
+      },
+    }),
+    prisma.user.count({ where }),
+  ]);
+
+  return { users, total };
+}

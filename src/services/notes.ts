@@ -1,5 +1,5 @@
-import { prisma } from "@/lib/db";
 import { Prisma } from "@/generated/prisma";
+import { prisma } from "@/lib/db";
 
 /**
  * Note select fields to return from queries
@@ -89,4 +89,43 @@ export async function deleteNote(noteId: string) {
     },
     select: noteSelect,
   });
+}
+
+/**
+ * Find all notes with user information (for admin)
+ */
+export async function findAllNotesWithUser(params: {
+  userId?: string;
+  page: number;
+  limit: number;
+}) {
+  const skip = (params.page - 1) * params.limit;
+
+  const where: Prisma.NotesWhereInput = params.userId
+    ? { userId: params.userId }
+    : {};
+
+  const [notes, total] = await Promise.all([
+    prisma.notes.findMany({
+      where,
+      skip,
+      take: params.limit,
+      orderBy: {
+        updatedAt: "desc",
+      },
+      select: {
+        ...noteSelect,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+    }),
+    prisma.notes.count({ where }),
+  ]);
+
+  return { notes, total };
 }
