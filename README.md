@@ -21,8 +21,8 @@ A Notion-style notes application built with Next.js, TypeScript, and PostgreSQL.
 
 **Regular User:**
 
-- **Email**: <there-and-back-again@bagend.shire>
-- **Password**: SecondBreakfast4Ever!
+- **Email**: <[REDACTED-EMAIL]>
+- **Password**: [REDACTED-PASSWORD]
 
 ## Tech Stack
 
