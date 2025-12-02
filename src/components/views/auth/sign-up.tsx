@@ -11,6 +11,7 @@ import {
 import {
   Field,
   FieldDescription,
+  FieldError,
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field";
@@ -38,6 +39,12 @@ export function SignUp({ ...props }: React.ComponentProps<typeof Card>) {
   } = useForm<SignUpInput>({
     resolver: zodResolver(signUpSchema),
     mode: "onBlur",
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
   });
 
   const onSubmit = async (data: SignUpInput) => {
@@ -92,9 +99,9 @@ export function SignUp({ ...props }: React.ComponentProps<typeof Card>) {
                 )}
               />
               {errors.name && (
-                <FieldDescription className="text-red-600">
+                <FieldError className="text-red-600">
                   {errors.name.message}
-                </FieldDescription>
+                </FieldError>
               )}
             </Field>
             <Field>
@@ -113,9 +120,9 @@ export function SignUp({ ...props }: React.ComponentProps<typeof Card>) {
                 )}
               />
               {errors.email && (
-                <FieldDescription className="text-red-600">
+                <FieldError className="text-red-600">
                   {errors.email.message}
-                </FieldDescription>
+                </FieldError>
               )}
             </Field>
             <Field>
@@ -136,9 +143,7 @@ export function SignUp({ ...props }: React.ComponentProps<typeof Card>) {
                 Must be at least 8 characters long.
               </FieldDescription>
               {errors.password && (
-                <FieldDescription className="text-red-600">
-                  {errors.password.message}
-                </FieldDescription>
+                <FieldError>{errors.password.message}</FieldError>
               )}
             </Field>
             <Field>
@@ -159,9 +164,9 @@ export function SignUp({ ...props }: React.ComponentProps<typeof Card>) {
               />
               <FieldDescription>Please confirm your password.</FieldDescription>
               {errors.confirmPassword && (
-                <FieldDescription className="text-red-600">
+                <FieldError className="text-red-600">
                   {errors.confirmPassword.message}
-                </FieldDescription>
+                </FieldError>
               )}
             </Field>
             <FieldGroup>

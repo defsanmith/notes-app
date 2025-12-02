@@ -11,6 +11,7 @@ import {
 import {
   Field,
   FieldDescription,
+  FieldError,
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field";
@@ -36,6 +37,10 @@ export function SignIn({ className, ...props }: React.ComponentProps<"div">) {
   } = useForm<SignInInput>({
     resolver: zodResolver(signInSchema),
     mode: "onBlur",
+    defaultValues: {
+      email: "",
+      password: "",
+    },
   });
 
   const onSubmit = async (data: SignInInput) => {
@@ -91,9 +96,7 @@ export function SignIn({ className, ...props }: React.ComponentProps<"div">) {
                   )}
                 />
                 {errors.email && (
-                  <FieldDescription className="text-red-600">
-                    {errors.email.message}
-                  </FieldDescription>
+                  <FieldError>{errors.email.message}</FieldError>
                 )}
               </Field>
               <Field>
@@ -111,9 +114,7 @@ export function SignIn({ className, ...props }: React.ComponentProps<"div">) {
                   )}
                 />
                 {errors.password && (
-                  <FieldDescription className="text-red-600">
-                    {errors.password.message}
-                  </FieldDescription>
+                  <FieldError>{errors.password.message}</FieldError>
                 )}
               </Field>
               <Field>
