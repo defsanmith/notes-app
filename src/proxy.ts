@@ -36,6 +36,11 @@ function isApiRoute(pathname: string): boolean {
   return pathname.startsWith("/api");
 }
 
+// Check if a path requires admin access
+function isAdminRoute(pathname: string): boolean {
+  return pathname.startsWith("/admin") || pathname.startsWith("/api/admin");
+}
+
 // This function can be marked `async` if using `await` inside
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -65,7 +70,33 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(signInUrl);
   }
 
-  // User is authenticated, allow access
+  // If admin user is accessing home route, redirect to admin panel
+  if (session.user.role === "ADMIN" && pathname === Routes.HOME) {
+    const adminUrl = new URL(Routes.ADMIN, request.url);
+    return NextResponse.redirect(adminUrl);
+  }
+
+  // Check if route requires admin access
+  if (isAdminRoute(pathname)) {
+    // Check if user is admin
+    if (session.user.role !== "ADMIN") {
+      // For API routes, return 403 JSON response
+      if (isApiRoute(pathname)) {
+        const errorResponse: ApiResponse = {
+          success: false,
+          error: "Forbidden - Admin access required",
+        };
+
+        return NextResponse.json(errorResponse, { status: 403 });
+      }
+
+      // For page routes, redirect to home
+      const homeUrl = new URL(Routes.HOME, request.url);
+      return NextResponse.redirect(homeUrl);
+    }
+  }
+
+  // User is authenticated (and is admin if accessing admin routes), allow access
   return NextResponse.next();
 }
 
