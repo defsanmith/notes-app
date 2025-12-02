@@ -12,6 +12,18 @@ A Notion-style notes application built with Next.js, TypeScript, and PostgreSQL.
 - PostgreSQL database with Prisma ORM
 - Docker Compose for local development
 
+## Account Credentials
+
+**Admin User:**
+
+- **Email**: <[REDACTED-EMAIL]>
+- **Password**: [REDACTED-PASSWORD]
+
+**Regular User:**
+
+- **Email**: <there-and-back-again@bagend.shire>
+- **Password**: SecondBreakfast4Ever!
+
 ## Tech Stack
 
 ### Core Technologies
@@ -162,13 +174,6 @@ ADMIN_PASSWORD=admin123
 
 7. **Open the application**
    Navigate to [http://localhost:3000](http://localhost:3000)
-
-### Default Admin Access
-
-After seeding, login with:
-
-- **Email**: Value from `ADMIN_EMAIL` env variable
-- **Password**: Value from `ADMIN_PASSWORD` env variable
 
 ## Project Scripts
 

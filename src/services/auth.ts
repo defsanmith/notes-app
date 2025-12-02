@@ -1,3 +1,4 @@
+import { Role } from "@/generated/prisma";
 import { prisma } from "@/lib/db";
 
 /**
@@ -57,13 +58,13 @@ export async function findAllUsersWithPagination(params: {
 
   const where = params.search
     ? {
-        role: { not: "ADMIN" },
+        role: { not: Role.ADMIN },
         OR: [
           { name: { contains: params.search, mode: "insensitive" as const } },
           { email: { contains: params.search, mode: "insensitive" as const } },
         ],
       }
-    : { role: { not: "ADMIN" } };
+    : { role: { not: Role.ADMIN } };
 
   const [users, total] = await Promise.all([
     prisma.user.findMany({
