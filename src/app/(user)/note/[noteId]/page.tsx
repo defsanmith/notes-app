@@ -4,12 +4,19 @@ import { NoteEditor } from "@/components/views/notes/note-editor";
 import { useGetNoteQuery } from "@/lib/store/api/notes/queries";
 import { useParams } from "next/navigation";
 import type { JSONContent } from "novel";
+import { useEffect } from "react";
 
 export default function NotePage() {
   const params = useParams();
   const noteId = params.noteId as string;
 
   const { data: note, isLoading } = useGetNoteQuery(noteId);
+
+  useEffect(() => {
+    if (note?.title) {
+      document.title = `${note.title} | Notes App`;
+    }
+  }, [note?.title]);
 
   if (isLoading) {
     return (

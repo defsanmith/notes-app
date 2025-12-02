@@ -4,7 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { NoteEditor } from "@/components/views/notes/note-editor";
 import { useGetAdminNoteQuery } from "@/lib/store/api/admin/queries";
 import { JSONContent } from "novel";
-import { use } from "react";
+import { use, useEffect } from "react";
 
 interface PageProps {
   params: Promise<{
@@ -15,6 +15,12 @@ interface PageProps {
 export default function AdminNotePage({ params }: PageProps) {
   const { noteId } = use(params);
   const { data, isLoading, error } = useGetAdminNoteQuery(noteId);
+
+  useEffect(() => {
+    if (data?.title) {
+      document.title = `${data.title} (Admin) | Notes App`;
+    }
+  }, [data?.title]);
 
   if (isLoading) {
     return (

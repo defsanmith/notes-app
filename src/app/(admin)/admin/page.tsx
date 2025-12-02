@@ -1,3 +1,9 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Admin Panel",
+};
+
 export default function AdminPage() {
   return (
     <div className="flex h-full w-full items-center justify-center">

@@ -14,6 +14,11 @@ export default function Home() {
   const router = useRouter();
   const [createNote, { isLoading: isCreating }] = useCreateNoteMutation();
 
+  // Set page title
+  useEffect(() => {
+    document.title = "My Notes | Notes App";
+  }, []);
+
   // If user has notes, redirect to the most recent one
   useEffect(() => {
     if (!isLoading && notes && notes.length > 0) {
@@ -49,10 +54,7 @@ export default function Home() {
           You don&apos;t have any notes yet. Create your first note to get
           started!
         </p>
-        <Button
-          onClick={handleCreateFirstNote}
-          disabled={isCreating}
-        >
+        <Button onClick={handleCreateFirstNote} disabled={isCreating}>
           {isCreating ? "Creating..." : "Create Your First Note"}
         </Button>
       </div>

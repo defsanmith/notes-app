@@ -1,4 +1,9 @@
 import { SignIn } from "@/components/views/auth/sign-in";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Sign In",
+};
 
 export default function SignInPage() {
   return (
