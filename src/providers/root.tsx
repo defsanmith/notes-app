@@ -2,8 +2,8 @@
 
 import { Providers } from "@/components/providers";
 import { Toaster } from "@/components/ui/sonner";
+import { Analytics } from "@vercel/analytics/next";
 import { SessionProvider } from "next-auth/react";
-
 export default function RootProvider({
   children,
 }: {
@@ -11,6 +11,7 @@ export default function RootProvider({
 }) {
   return (
     <SessionProvider>
+      <Analytics />
       <Providers>
         {children}
         <Toaster />
